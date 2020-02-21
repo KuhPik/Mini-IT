@@ -3,4 +3,3 @@
     void Execute();
     void Undo();
 }
-

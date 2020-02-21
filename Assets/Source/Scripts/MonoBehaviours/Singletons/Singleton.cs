@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 {
@@ -14,7 +11,6 @@ public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
             Instance = this as T;
             DontDestroyOnLoad(gameObject);
         }
-
         else
         {
             DestroyImmediate(gameObject);

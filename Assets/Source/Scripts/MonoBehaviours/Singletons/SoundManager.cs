@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -19,25 +18,37 @@ public class SoundManager : Singleton<SoundManager>
     [SerializeField] private AudioSource _backgroundSource;
     [SerializeField] private SoundData[] _datas;
 
+    /// <summary>
+    /// Playing the SFX of specified type.
+    /// </summary>
     public void PlaySound(SoundType type)
     {
         _sfxSource.PlayOneShot(GetClip(type));
     }
 
+    /// <summary>
+    /// Changes background music to specified type and playing it.
+    /// </summary>
     public void ChangeMusic(SoundType type)
     {
         _backgroundSource.clip = GetClip(type);
         _backgroundSource.Play();
     }
 
+    /// <summary>
+    /// Changes the MASTER-volume.
+    /// </summary>
     public void ChangeVolume(float value)
     {
         _sfxSource.outputAudioMixerGroup.audioMixer.SetFloat("Volume", value);
     }
 
-    public void ChangeVolume(float value, bool isMusic)
+    /// <summary>
+    /// Changes volume of sfx or backround-music channel.
+    /// </summary>
+    public void ChangeVolume(float value, bool isSFX)
     {
-        var source = isMusic ? _backgroundSource : _sfxSource;
+        var source = isSFX ? _sfxSource : _backgroundSource;
         source.volume = value;
     }
 
