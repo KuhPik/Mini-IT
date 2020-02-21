@@ -29,22 +29,22 @@ public static class Extensions
     /// <summary>
     /// Adds an element to the array at the specified index and increases the index by 1. When the array reaches its maximum size, it shifts the array by 1 to the beginning.
     /// </summary>
-    public static void Push<T>(this T[] collection, ref int index, T item, int maxCount)
+    public static void Push<T>(this T[] collection, ref int index, T item)
     {
-        if (collection.Length < maxCount)
+        if (index < collection.Length)
         {
             collection[index] = item;
             index++;
         }
         else
         {
-            for (int i = 1; i < maxCount; i++)
+            for (int i = 1; i < collection.Length; i++)
             {
                 var element = collection[i];
                 collection[i - 1] = element;
             }
 
-            collection[index] = item;
+            collection[collection.Length - 1] = item;
         }
     }
 
