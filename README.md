@@ -1,2 +1,2 @@
-# mini-it-test
+# Mini-IT
  Тестовое
