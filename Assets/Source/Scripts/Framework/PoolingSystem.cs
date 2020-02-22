@@ -11,7 +11,7 @@ namespace Kuhpik
         private static Dictionary<string, GameObject> _prefabs = new Dictionary<string, GameObject>();
 
         /// <summary>
-        /// Creates pool with specified id and capacity. You also can use GetObject that automatically creates pool.
+        /// Creates pool with specified id and capacity. You can also create pool automatically by using GetObject().
         /// </summary>
         public static void CreatePool(string id, GameObject prefab, bool dontDestroy, int capacity = 64)
         {
