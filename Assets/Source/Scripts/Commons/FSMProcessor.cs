@@ -12,21 +12,16 @@ public sealed class FSMProcessor<T>
 
     private string _currentStateName;
 
-    public FSMProcessor(string name, T state)
+    public FSMProcessor(string name, T state, params string[] allowedTransitions)
     {
         _currentStateName = name;
         State = state;
         AddState(name, state);
     }
 
-    public void AddState(string name, T state)
+    public void AddState(string name, T state, params string[] allowedTransitions)
     {
         _states.Add(name, state);
-    }
-
-    public void AddState(string name, T state, IEnumerable<string> allowedTransitions)
-    {
-        AddState(name, state);
         AddTransition(name, allowedTransitions);
     }
 
@@ -44,7 +39,7 @@ public sealed class FSMProcessor<T>
         }
     }
 
-    public void AddTransition(string name, IEnumerable<string> allowedTransitions)
+    public void AddTransition(string name, params string[] allowedTransitions)
     {
         _allowedTransition.Add(name, allowedTransitions);
     }

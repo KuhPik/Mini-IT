@@ -1,23 +1,45 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 namespace Kuhpik
 {
-    public abstract class GameState
+    public sealed class GameState
     {
         public IGameSystem[] Systems { get; private set; }
         public IRunning[] RunningSystems { get; private set; }
+        public bool IsInited { get; private set; }
 
-        protected bool _isInited;
+        private bool _isRestarting;
 
-        /// <summary>
-        /// Add systems you want, then call base. method after.
-        /// </summary>
-        public virtual void Setup(GameConfig config)
+        public GameState(GameConfig config, bool isRestarting, params MonoBehaviour[] systems)
         {
-            if (!_isInited) Init(config);
+            Systems = systems.Select(x => x as IGameSystem).ToArray();
+            _isRestarting = isRestarting;
+            Setup(config);
+
+            Perform<ISubscribing>();
         }
 
-        protected virtual void Init(GameConfig config)
+        public void Activate()
+        {
+            if ((IsInited && _isRestarting) || !IsInited)
+            {
+                Perform<IIniting>();
+                IsInited = true;
+            }
+        }
+
+        public void Deactivate()
+        {
+            if (_isRestarting && IsInited)
+            {
+                Perform<IDisposing>();
+                IsInited = false;
+            }
+        }
+
+        private void Setup(GameConfig config)
         {
             var runnings = new List<IRunning>();
 
@@ -28,7 +50,14 @@ namespace Kuhpik
             }
 
             RunningSystems = runnings.ToArray();
-            _isInited = true;
+        }
+
+        private void Perform<T>() where T : IGameSystem
+        {
+            for (int i = 0; i < Systems.Length; i++)
+            {
+                Systems[i].PerformAction<T>();
+            }
         }
     }
 }

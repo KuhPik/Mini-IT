@@ -11,15 +11,35 @@ namespace Kuhpik
     {
         [Header("Settings")]
         [SerializeField] private GameConfig _config;
-
         [SerializeField] [Range(10, 60)] private int _updatesPerSecons;
         [SerializeField] private bool _isTapToStart;
         [SerializeField] private Button _startButton;
 
-        private static Dictionary<Type, MonoBehaviour> _systems;
-
         private WaitForSeconds _timeStep;
         private FSMProcessor<GameState> _fsm;
+        private static Dictionary<Type, MonoBehaviour> _systems;
+
+        public void ChangeGameState(string name)
+        {
+            _fsm.State.Deactivate();
+            _fsm.ChangeState(name);
+            _fsm.State.Activate();
+        }
+
+        public static T GetSystems<T>() where T : class
+        {
+            return _systems[typeof(T)] as T;
+        }
+
+        public void GameRestart(int sceneIndex)
+        {
+            foreach (var system in _systems.Keys)
+            {
+                (system as IGameSystem).PerformAction<IDisposing>();
+            }
+
+            SceneManager.LoadScene(sceneIndex);
+        }
 
         private void Start()
         {
@@ -32,22 +52,14 @@ namespace Kuhpik
         private void InitSystems()
         {
             HandleGameStates();
-            HandleAction<ISubscribing>();
-            HandleAction<IIniting>();
             HandleTick();
         }
 
         private void HandleGameStates()
         {
-            _fsm = new FSMProcessor<GameState>("Game", new PlayingState());
-        }
+            _fsm = new FSMProcessor<GameState>("Game", new GameState(_config, false, FindObjectOfType<TestSystem>()));
 
-        private void HandleAction<T>() where T : IGameSystem
-        {
-            for (int i = 0; i < _fsm.State.Systems.Length; i++)
-            {
-                _fsm.State.Systems[i].PerformAction<T>();
-            }
+            _fsm.State.Activate();
         }
 
         private void HandleTick()
@@ -62,22 +74,14 @@ namespace Kuhpik
             {
                 yield return _timeStep;
 
-                for (int i = 0; i < _fsm.State.RunningSystems.Length; i++)
+                if (_fsm.State.IsInited)
                 {
-                    _fsm.State.RunningSystems[i].OnRun();
+                    for (int i = 0; i < _fsm.State.RunningSystems.Length; i++)
+                    {
+                        _fsm.State.RunningSystems[i].OnRun();
+                    }
                 }
             }
-        }
-
-        public static T GetSystems<T>() where T : class
-        {
-            return _systems[typeof(T)] as T;
-        }
-
-        public void GameRestart(int sceneIndex)
-        {
-            HandleAction<IDisposing>();
-            SceneManager.LoadScene(sceneIndex);
         }
     }
 }
