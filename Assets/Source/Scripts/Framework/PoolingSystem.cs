@@ -1,100 +1,80 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Kuhpik
 {
-    [System.Serializable]
-    public struct PoolingData
+    public static class PoolingSystem
     {
-        public GameObject prefab;
-        public ObjectType type;
-        public int preloaded;
-    }
+        private static Dictionary<string, Queue<GameObject>> _pools = new Dictionary<string, Queue<GameObject>>();
+        private static Dictionary<string, GameObject> _prefabs = new Dictionary<string, GameObject>();
 
-    public enum ObjectType
-    {
-
-    }
-
-    public sealed class PoolingSystem : MonoBehaviour
-    {
-        public static PoolingSystem Instance;
-        [SerializeField] private PoolingData[] poolingDatas;
-        private Dictionary<ObjectType, GameObject> prefabDictionary;
-        private Dictionary<ObjectType, Queue<GameObject>> poolDictionary;
-
-        private void Awake()
+        /// <summary>
+        /// Creates pool with specified id and capacity. You also can use GetObject that automatically creates pool.
+        /// </summary>
+        public static void CreatePool(string id, GameObject prefab, bool dontDestroy, int capacity = 64)
         {
-            if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
-            else { Debug.LogError("Wrong scene was loaded"); DestroyImmediate(gameObject); }
-        }
+            _prefabs.Add(id, prefab);
 
-        private void Start()
-        {
-            poolDictionary = new Dictionary<ObjectType, Queue<GameObject>>();
-            prefabDictionary = new Dictionary<ObjectType, GameObject>();
-
-            for (int i = 0; i < poolingDatas.Length; i++)
+            var queue = new Queue<GameObject>();
+            for (int i = 0; i < capacity; i++)
             {
-                var _type = poolingDatas[i].type;
-
-                poolDictionary.Add(_type, new Queue<GameObject>());
-                prefabDictionary.Add(_type, poolingDatas[i].prefab);
-
-                for (int j = 0; j < poolingDatas[i].preloaded; j++)
-                {
-                    poolDictionary[_type].Enqueue(InstantiateObject(_type, false));
-                }
+                queue.Enqueue(InstantiateObject(id, false, dontDestroy));
             }
+
+            _pools.Add(id, queue);
         }
 
         /// <summary>
         /// Get object from pool
         /// </summary>
-        public GameObject GetObject(ObjectType _type)
+        public static GameObject GetObject(string id)
         {
-            var _object = poolDictionary[_type].Count != 0 ? poolDictionary[_type].Dequeue() : InstantiateObject(_type);
-            _object.SetActive(true);
-            return _object;
+            var @object = _pools[id].Count != 0 ? _pools[id].Dequeue() : InstantiateObject(id);
+            @object.SetActive(true);
+            return @object;
+        }
+
+        /// <summary>
+        /// Get object from pool. If there is no pool - creates it.
+        /// </summary>
+        public static GameObject GetObject(string id, GameObject prefab, bool dontDestroy, int capacity = 64)
+        {
+            if (!_pools.ContainsKey(id)) CreatePool(id, prefab, dontDestroy, capacity);
+            return GetObject(id);
         }
 
         /// <summary>
         /// Pool object back
         /// </summary>
-        public void PoolObject(GameObject _object, ObjectType _type)
+        public static void PoolObject(GameObject @object, string id)
         {
-            poolDictionary[_type].Enqueue(_object);
-            _object.SetActive(false);
+            _pools[id].Enqueue(@object);
+            @object.SetActive(false);
         }
 
         /// <summary>
         /// Pool object back after some time (like Destroy with time param)
         /// </summary>
-        public void PoolObject(GameObject _object, ObjectType _type, float _time)
+        public static async void PoolObject(GameObject @object, string id, float time)
         {
-            StartCoroutine(PoolRoutine(_object, _type, _time));
+            await Task.Delay(TimeSpan.FromSeconds(time));
+            PoolObject(@object, id);
         }
 
-        private IEnumerator PoolRoutine(GameObject _object, ObjectType _type, float _time)
+        private static GameObject InstantiateObject(string id, bool dontDestroy = false)
         {
-            yield return new WaitForSeconds(_time);
-            PoolObject(_object, _type);
+            var @object = GameObject.Instantiate(_prefabs[id]);
+            if (dontDestroy) GameObject.DontDestroyOnLoad(@object);
+            return @object;
         }
 
-        private GameObject InstantiateObject(ObjectType _type)
+        private static GameObject InstantiateObject(string id, bool activeState, bool dontDestroy = false)
         {
-            var _object = Instantiate(prefabDictionary[_type]);
-            DontDestroyOnLoad(_object);
-            return _object;
-        }
-
-        private GameObject InstantiateObject(ObjectType _type, bool _activeState)
-        {
-            var _object = InstantiateObject(_type);
-            _object.SetActive(_activeState);
-            return _object;
+            var @object = InstantiateObject(id, dontDestroy);
+            @object.SetActive(activeState);
+            return @object;
         }
     }
 }

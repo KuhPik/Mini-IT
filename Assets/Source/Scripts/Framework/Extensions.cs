@@ -4,7 +4,7 @@ using System;
 
 namespace Kuhpik
 {
-    public static class GameExtensions
+    public static class FramerokExtensions
     {
         public static bool TryGetComponent<T>(this GameObject @object, out T component) where T : class
         {
@@ -26,7 +26,6 @@ namespace Kuhpik
             }
         }
         
-        //WTH :D
         public static void PerformAction<T>(this IGameSystem system) where T : IGameSystem
         {
             if (system is T)
