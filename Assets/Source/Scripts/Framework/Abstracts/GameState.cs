@@ -12,11 +12,11 @@ namespace Kuhpik
 
         private bool _isRestarting;
 
-        public GameState(GameConfig config, bool isRestarting, params MonoBehaviour[] systems)
+        public GameState(bool isRestarting, params MonoBehaviour[] systems)
         {
             Systems = systems.Select(x => x as IGameSystem).ToArray();
             _isRestarting = isRestarting;
-            Setup(config);
+            Setup();
 
             Perform<ISubscribing>();
         }
@@ -39,14 +39,13 @@ namespace Kuhpik
             }
         }
 
-        private void Setup(GameConfig config)
+        private void Setup()
         {
             var runnings = new List<IRunning>();
 
             for (int i = 0; i < Systems.Length; i++)
             {
                 if (Systems[i] is IRunning) runnings.Add(Systems[i] as IRunning);
-                (Systems[i] as GameSystem).InjectConfig(config);
             }
 
             RunningSystems = runnings.ToArray();
