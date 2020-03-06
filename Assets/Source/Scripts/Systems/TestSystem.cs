@@ -14,6 +14,8 @@ namespace Kuhpik
             var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.transform.localScale = Vector3.one * 5;
             _cube = cube.transform;
+
+            Debug.Log(_config);
         }
 
         void IRunning.OnRun()

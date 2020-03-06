@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -17,12 +18,15 @@ namespace Kuhpik
 
         private WaitForSeconds _timeStep;
         private FSMProcessor<GameState> _fsm;
+        private Dictionary<Type, object> _injections;
         private static Dictionary<Type, MonoBehaviour> _systems;
 
         public void ChangeGameState(string name)
         {
             _fsm.State.Deactivate();
             _fsm.ChangeState(name);
+
+            Inject(_fsm.State.Systems);
             _fsm.State.Activate();
         }
 
@@ -52,14 +56,46 @@ namespace Kuhpik
         private void InitSystems()
         {
             HandleGameStates();
+            HandleInjections();
             HandleTick();
+
+            _fsm.State.Activate();
         }
 
         private void HandleGameStates()
         {
-            _fsm = new FSMProcessor<GameState>("Game", new GameState(_config, false, FindObjectOfType<TestSystem>()));
+            _fsm = new FSMProcessor<GameState>("Game", new GameState(false, FindObjectOfType<TestSystem>()));
+        }
 
-            _fsm.State.Activate();
+        private void HandleInjections()
+        {
+            _injections = new Dictionary<Type, object>();
+
+            //Injections
+            _injections.Add(typeof(GameConfig), _config);
+
+            //process
+            Inject(_fsm.State.Systems);
+        }
+
+        private void Inject(IEnumerable<IGameSystem> systems)
+        {
+            if (_injections == null || _injections.Count == 0) return;
+
+            foreach (var system in systems)
+            {
+                var type = system.GetType();
+                foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+                {
+                    foreach (var pair in _injections)
+                    {
+                        if (field.FieldType.IsAssignableFrom(pair.Key))
+                        {
+                            field.SetValue(system, pair.Value);
+                        }
+                    }
+                }
+            }
         }
 
         private void HandleTick()
