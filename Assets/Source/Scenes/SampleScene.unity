@@ -412,7 +412,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ed42646e02d8df448f1be3c5f30844f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _config: {fileID: 0}
+  _config: {fileID: 11400000, guid: 7aaddd36d3fafcd42bda22d9d79806de, type: 2}
   _updatesPerSecons: 30
   _isTapToStart: 0
   _startButton: {fileID: 0}

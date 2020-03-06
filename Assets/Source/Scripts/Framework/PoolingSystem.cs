@@ -107,7 +107,7 @@ namespace Kuhpik
         /// </summary>
         public static GameObject GetObject(GameObject prefab, int capacity = capacity, bool dontDestroy = false)
         {
-            return GetObject(prefab.name, prefab, capacity, dontDestroy);
+            return GetObject(prefab.name, prefab, capacity, 0f, dontDestroy);
         }
 
         #endregion GetObject with pool creation
