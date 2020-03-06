@@ -7,7 +7,7 @@ namespace Kuhpik
 {
     public static class PoolingSystem
     {
-        private const int capacity = 16;
+        private const int baseCapacity = 16;
 
         private static Dictionary<string, Queue<GameObject>> _pools = new Dictionary<string, Queue<GameObject>>();
         private static Dictionary<string, GameObject> _prefabs = new Dictionary<string, GameObject>();
@@ -15,7 +15,7 @@ namespace Kuhpik
         /// <summary>
         /// Creates pool with specified id. You can also create pool automatically by using GetObject().
         /// </summary>
-        public static void CreatePool(string id, GameObject prefab, int capacity = capacity, float poolTime = 0f, bool dontDestroy = false)
+        public static void CreatePool(string id, GameObject prefab, int capacity = baseCapacity, float poolTime = 0f, bool dontDestroy = false)
         {
             _prefabs.Add(id, prefab);
 
@@ -28,51 +28,14 @@ namespace Kuhpik
             _pools.Add(id, queue);
         }
 
-        #region CreatePool adapters
-
         /// <summary>
-        /// Creates pool with specified id. You can also create pool automatically by using GetObject().
+        /// Get object from pool. If there is no pool - creates it.
         /// </summary>
-        public static void CreatePool(string id, GameObject prefab, int capacity = capacity, float poolTime = 0f)
+        public static GameObject GetObject(string id, GameObject prefab, int capacity = baseCapacity, float poolTime = 0f, bool dontDestroy = false)
         {
-            CreatePool(id, prefab, capacity, poolTime, false);
+            if (!_pools.ContainsKey(id)) CreatePool(id, prefab, capacity, dontDestroy);
+            return GetObject(id);
         }
-
-        /// <summary>
-        /// Creates pool with specified id. You can also create pool automatically by using GetObject().
-        /// </summary>
-        public static void CreatePool(string id, GameObject prefab, int capacity = capacity, bool dontDestroy = false)
-        {
-            CreatePool(id, prefab, capacity, 0, dontDestroy);
-        }
-
-        /// <summary>
-        /// Creates pool with id that is gameobject's name. You can also create pool automatically by using GetObject().
-        /// </summary>
-        public static void CreatePool(GameObject prefab, int capacity = capacity, float poolTime = 0f, bool dontDestroy = false)
-        {
-            CreatePool(prefab.name, prefab, capacity, poolTime, dontDestroy);
-        }
-
-        /// <summary>
-        /// Creates pool with id that is gameobject's name. You can also create pool automatically by using GetObject().
-        /// </summary>
-        public static void CreatePool(GameObject prefab, int capacity = capacity, float poolTime = 0f)
-        {
-            CreatePool(prefab.name, prefab, capacity, poolTime, false);
-        }
-
-        /// <summary>
-        /// Creates pool with id that is gameobject's name. You can also create pool automatically by using GetObject().
-        /// </summary>
-        public static void CreatePool(GameObject prefab, int capacity = capacity, bool dontDestroy = false)
-        {
-            CreatePool(prefab.name, prefab, capacity, 0, dontDestroy);
-        }
-
-        #endregion CreatePool adapters
-
-        #region GetObject
 
         /// <summary>
         /// Get object from pool
@@ -84,30 +47,114 @@ namespace Kuhpik
             return @object;
         }
 
-        public static GameObject GetObject(GameObject prefab)
+        #region CreatePool adapters
+
+        /// <summary>
+        /// Creates pool with specified id. You can also create pool automatically by using GetObject().
+        /// </summary>
+        public static void CreatePool(string id, GameObject prefab, int capacity = baseCapacity, float poolTime = 0f)
         {
-            return GetObject(prefab.name);
+            CreatePool(id, prefab, capacity, poolTime, false);
         }
 
-        #endregion GetObject
+        /// <summary>
+        /// Creates pool with specified id. You can also create pool automatically by using GetObject().
+        /// </summary>
+        public static void CreatePool(string id, GameObject prefab, int capacity = baseCapacity, bool dontDestroy = false)
+        {
+            CreatePool(id, prefab, capacity, 0, dontDestroy);
+        }
 
-        #region GetObject with pool creation
+        /// <summary>
+        /// Creates pool. Uses gameobject's name as id. You can also create pool automatically by using GetObject().
+        /// </summary>
+        public static void CreatePool(GameObject prefab, int capacity = baseCapacity, float poolTime = 0f, bool dontDestroy = false)
+        {
+            CreatePool(prefab.name, prefab, capacity, poolTime, dontDestroy);
+        }
+
+        /// <summary>
+        /// Creates pool. Uses gameobject's name as id. You can also create pool automatically by using GetObject().
+        /// </summary>
+        public static void CreatePool(GameObject prefab, int capacity = baseCapacity, float poolTime = 0f)
+        {
+            CreatePool(prefab.name, prefab, capacity, poolTime, false);
+        }
+
+        /// <summary>
+        /// Creates pool. Uses gameobject's name as id. You can also create pool automatically by using GetObject().
+        /// </summary>
+        public static void CreatePool(GameObject prefab, int capacity = baseCapacity, bool dontDestroy = false)
+        {
+            CreatePool(prefab.name, prefab, capacity, 0, dontDestroy);
+        }
+
+        #endregion CreatePool adapters
+
+        #region GetObject adapters
 
         /// <summary>
         /// Get object from pool. If there is no pool - creates it.
         /// </summary>
-        public static GameObject GetObject(string id, GameObject prefab, int capacity = capacity, float poolTime = 0f, bool dontDestroy = false)
+        public static GameObject GetObject(string id, GameObject prefab, int capacity = baseCapacity, float poolTime = 0f)
         {
-            if (!_pools.ContainsKey(id)) CreatePool(id, prefab, capacity, dontDestroy);
-            return GetObject(id);
+            return GetObject(id, prefab, capacity, poolTime, false);
         }
 
         /// <summary>
-        /// Get object from pool. If there is no pool - creates it with id that is gameobject's name.
+        /// Get object from pool. If there is no pool - creates it.
         /// </summary>
-        public static GameObject GetObject(GameObject prefab, int capacity = capacity, bool dontDestroy = false)
+        public static GameObject GetObject(string id, GameObject prefab, int capacity = baseCapacity, bool dontDestroy = false)
+        {
+            return GetObject(id, prefab, capacity, 0f, dontDestroy);
+        }
+
+        /// <summary>
+        /// Get object from pool. If there is no pool - creates it.
+        /// </summary>
+        public static GameObject GetObject(string id, GameObject prefab, float poolTime = 0f)
+        {
+            return GetObject(id, prefab, baseCapacity, poolTime, false);
+        }
+
+        /// <summary>
+        /// Get object from pool. If there is no pool - creates it. Uses gameobject's name as id.
+        /// </summary>
+        public static GameObject GetObject(GameObject prefab, int capacity = baseCapacity, float poolTime = 0f, bool dontDestroy = false)
         {
             return GetObject(prefab.name, prefab, capacity, 0f, dontDestroy);
+        }
+
+        /// <summary>
+        /// Get object from pool. If there is no pool - creates it. Uses gameobject's name as id.
+        /// </summary>
+        public static GameObject GetObject(GameObject prefab, int capacity = baseCapacity, float poolTime = 0f)
+        {
+            return GetObject(prefab.name, prefab, capacity, poolTime, false);
+        }
+
+        /// <summary>
+        /// Get object from pool. If there is no pool - creates it. Uses gameobject's name as id.
+        /// </summary>
+        public static GameObject GetObject(GameObject prefab, int capacity = baseCapacity, bool dontDestroy = false)
+        {
+            return GetObject(prefab.name, prefab, capacity, 0f, dontDestroy);
+        }
+
+        /// <summary>
+        /// Get object from pool. If there is no pool - creates it. Uses gameobject's name as id.
+        /// </summary>
+        public static GameObject GetObject(GameObject prefab, float poolTime = 0f)
+        {
+            return GetObject(prefab.name, prefab, baseCapacity, poolTime, false);
+        }
+
+        /// <summary>
+        /// Get object from pool. Uses gameobject's name as id.
+        /// </summary>
+        public static GameObject GetObject(GameObject prefab)
+        {
+            return GetObject(prefab.name);
         }
 
         #endregion GetObject with pool creation
@@ -133,7 +180,7 @@ namespace Kuhpik
         }
 
         /// <summary>
-        /// Pool object back with id that is gameobject's name. Specify id if you changed the object's name.
+        /// Pool object back. Uses gameobject's name as id. Specify id if you changed the object's name.
         /// </summary>
         public static void PoolObject(GameObject @object)
         {
@@ -141,7 +188,7 @@ namespace Kuhpik
         }
 
         /// <summary>
-        /// Pool object back after some time (like Destroy with time param). Specify id if you changed the object's name.
+        /// Pool object back after some time (like Destroy with time param). Uses gameobject's name as id. Specify id if you changed the object's name.
         /// </summary>
         public static void PoolObject(GameObject @object, float time)
         {
@@ -156,6 +203,7 @@ namespace Kuhpik
         {
             var @object = GameObject.Instantiate(_prefabs[id]);
             if (dontDestroy) GameObject.DontDestroyOnLoad(@object);
+            @object.name = _prefabs[id].name;
             return @object;
         }
 
