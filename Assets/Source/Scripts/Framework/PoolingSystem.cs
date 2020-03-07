@@ -9,15 +9,15 @@ namespace Kuhpik
     {
         private const int baseCapacity = 16;
 
-        private static Dictionary<string, Queue<GameObject>> _pools = new Dictionary<string, Queue<GameObject>>();
-        private static Dictionary<string, GameObject> _prefabs = new Dictionary<string, GameObject>();
+        private static Dictionary<string, Queue<GameObject>> pools = new Dictionary<string, Queue<GameObject>>();
+        private static Dictionary<string, GameObject> prefabs = new Dictionary<string, GameObject>();
 
         /// <summary>
         /// Creates pool with specified id. You can also create pool automatically by using GetObject().
         /// </summary>
         public static void CreatePool(string id, GameObject prefab, int capacity = baseCapacity, bool dontDestroy = false)
         {
-            _prefabs.Add(id, prefab);
+            prefabs.Add(id, prefab);
 
             var queue = new Queue<GameObject>();
             for (int i = 0; i < capacity; i++)
@@ -25,7 +25,7 @@ namespace Kuhpik
                 queue.Enqueue(InstantiateObject(id, false, dontDestroy));
             }
 
-            _pools.Add(id, queue);
+            pools.Add(id, queue);
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Kuhpik
         /// </summary>
         public static GameObject GetObject(string id, GameObject prefab, int capacity = baseCapacity, float poolTime = 0f, bool dontDestroy = false)
         {
-            if (!_pools.ContainsKey(id)) CreatePool(id, prefab, capacity, dontDestroy);
+            if (!pools.ContainsKey(id)) CreatePool(id, prefab, capacity, dontDestroy);
             var @object = GetObject(id);
 
             if (poolTime > 0) PoolObject(@object, id, poolTime);
@@ -45,7 +45,7 @@ namespace Kuhpik
         /// </summary>
         public static GameObject GetObject(string id)
         {
-            var @object = _pools[id].Count != 0 ? _pools[id].Dequeue() : InstantiateObject(id);
+            var @object = pools[id].Count != 0 ? pools[id].Dequeue() : InstantiateObject(id);
             @object.SetActive(true);
             return @object;
         }
@@ -169,7 +169,7 @@ namespace Kuhpik
         /// </summary>
         public static void PoolObject(GameObject @object, string id)
         {
-            _pools[id].Enqueue(@object);
+            pools[id].Enqueue(@object);
             @object.SetActive(false);
         }
 
@@ -204,9 +204,9 @@ namespace Kuhpik
 
         private static GameObject InstantiateObject(string id, bool dontDestroy = false)
         {
-            var @object = GameObject.Instantiate(_prefabs[id]);
+            var @object = GameObject.Instantiate(prefabs[id]);
             if (dontDestroy) GameObject.DontDestroyOnLoad(@object);
-            @object.name = _prefabs[id].name;
+            @object.name = prefabs[id].name;
             return @object;
         }
 

@@ -10,12 +10,12 @@ namespace Kuhpik
         public IRunning[] RunningSystems { get; private set; }
         public bool IsInited { get; private set; }
 
-        private bool _isRestarting;
+        private bool isRestarting;
 
         public GameState(bool isRestarting, params MonoBehaviour[] systems)
         {
             Systems = systems.Select(x => x as IGameSystem).ToArray();
-            _isRestarting = isRestarting;
+            this.isRestarting = isRestarting;
             Setup();
 
             Perform<ISubscribing>();
@@ -23,7 +23,7 @@ namespace Kuhpik
 
         public void Activate()
         {
-            if ((IsInited && _isRestarting) || !IsInited)
+            if ((IsInited && isRestarting) || !IsInited)
             {
                 Perform<IIniting>();
                 IsInited = true;
@@ -32,7 +32,7 @@ namespace Kuhpik
 
         public void Deactivate()
         {
-            if (_isRestarting && IsInited)
+            if (isRestarting && IsInited)
             {
                 Perform<IDisposing>();
                 IsInited = false;

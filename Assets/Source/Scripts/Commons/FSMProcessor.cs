@@ -1,46 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public sealed class FSMProcessor<T>
+namespace Kuhpik
 {
-    public T State { get; private set; }
-
-    private Dictionary<string, T> _states = new Dictionary<string, T>();
-    private Dictionary<string, IEnumerable<string>> _allowedTransition = new Dictionary<string, IEnumerable<string>>();
-
-    private string _currentStateName;
-
-    public FSMProcessor(string name, T state, params string[] allowedTransitions)
+    public sealed class FSMProcessor<T>
     {
-        _currentStateName = name;
-        State = state;
-        AddState(name, state);
-    }
+        public T State { get; private set; }
 
-    public void AddState(string name, T state, params string[] allowedTransitions)
-    {
-        _states.Add(name, state);
-        AddTransition(name, allowedTransitions);
-    }
+        private Dictionary<string, T> states = new Dictionary<string, T>();
+        private Dictionary<string, IEnumerable<string>> allowedTransition = new Dictionary<string, IEnumerable<string>>();
 
-    public void ChangeState(string name)
-    {
-        if (_allowedTransition.ContainsKey(_currentStateName) && !_allowedTransition[_currentStateName].Contains(name))
+        private string currentStateName;
+
+        public FSMProcessor(string name, T state, params string[] allowedTransitions)
         {
-            Debug.LogError($"Not allowed transition from {_currentStateName} to {name}!");
+            currentStateName = name;
+            State = state;
+            AddState(name, state);
         }
-        else
-        {
-            Debug.Log($"State changed to {name}!");
-            State = _states[name];
-            _currentStateName = name;
-        }
-    }
 
-    public void AddTransition(string name, params string[] allowedTransitions)
-    {
-        _allowedTransition.Add(name, allowedTransitions);
+        public void AddState(string name, T state, params string[] allowedTransitions)
+        {
+            states.Add(name, state);
+            AddTransition(name, allowedTransitions);
+        }
+
+        public void ChangeState(string name)
+        {
+            if (allowedTransition.ContainsKey(currentStateName) && !allowedTransition[currentStateName].Contains(name))
+            {
+                Debug.LogError($"Not allowed transition from {currentStateName} to {name}!");
+            }
+            else
+            {
+                Debug.Log($"State changed to {name}!");
+                State = states[name];
+                currentStateName = name;
+            }
+        }
+
+        public void AddTransition(string name, params string[] allowedTransitions)
+        {
+            allowedTransition.Add(name, allowedTransitions);
+        }
     }
 }

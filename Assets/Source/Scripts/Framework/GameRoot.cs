@@ -11,33 +11,32 @@ namespace Kuhpik
     public class GameRoot : MonoBehaviour
     {
         [Header("Settings")]
-        [SerializeField] private GameConfig _config;
-        [SerializeField] [Range(10, 60)] private int _updatesPerSecons;
-        [SerializeField] private bool _isTapToStart;
-        [SerializeField] private Button _startButton;
+        [SerializeField] private GameConfig config;
+        [SerializeField] [Range(10, 60)] private int updatesPerSecons;
+        [SerializeField] private bool isTapToStart;
+        [SerializeField] private Button startButton;
 
-        private WaitForSeconds _timeStep;
-        private FSMProcessor<GameState> _fsm;
-        private Dictionary<Type, object> _injections;
-        private static Dictionary<Type, MonoBehaviour> _systems;
+        private FSMProcessor<GameState> fsm;
+        private Dictionary<Type, object> injections;
+        private static Dictionary<Type, MonoBehaviour> systems;
 
         public void ChangeGameState(string name)
         {
-            _fsm.State.Deactivate();
-            _fsm.ChangeState(name);
+            fsm.State.Deactivate();
+            fsm.ChangeState(name);
 
-            Inject(_fsm.State.Systems);
-            _fsm.State.Activate();
+            Inject(fsm.State.Systems);
+            fsm.State.Activate();
         }
 
         public static T GetSystems<T>() where T : class
         {
-            return _systems[typeof(T)] as T;
+            return systems[typeof(T)] as T;
         }
 
         public void GameRestart(int sceneIndex)
         {
-            foreach (var system in _systems.Keys)
+            foreach (var system in systems.Keys)
             {
                 (system as IGameSystem).PerformAction<IDisposing>();
             }
@@ -49,7 +48,7 @@ namespace Kuhpik
         {
             Application.targetFrameRate = 60;
 
-            if (_isTapToStart) _startButton.onClick.AddListener(InitSystems);
+            if (isTapToStart) startButton.onClick.AddListener(InitSystems);
             else InitSystems();
         }
 
@@ -59,35 +58,35 @@ namespace Kuhpik
             HandleInjections();
             HandleTick();
 
-            _fsm.State.Activate();
+            fsm.State.Activate();
         }
 
         private void HandleGameStates()
         {
-            _fsm = new FSMProcessor<GameState>("Game", new GameState(false, FindObjectOfType<TestSystem>()));
+            fsm = new FSMProcessor<GameState>("Game", new GameState(false, FindObjectOfType<TestSystem>()));
         }
 
         private void HandleInjections()
         {
-            _injections = new Dictionary<Type, object>();
+            injections = new Dictionary<Type, object>();
 
             //Injections
-            _injections.Add(typeof(GameConfig), _config);
+            injections.Add(typeof(GameConfig), config);
 
             //process
-            Inject(_fsm.State.Systems);
+            Inject(fsm.State.Systems);
         }
 
         private void Inject(IEnumerable<IGameSystem> systems)
         {
-            if (_injections == null || _injections.Count == 0) return;
+            if (injections == null || injections.Count == 0) return;
 
             foreach (var system in systems)
             {
                 var type = system.GetType();
                 foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
                 {
-                    foreach (var pair in _injections)
+                    foreach (var pair in injections)
                     {
                         if (field.FieldType.IsAssignableFrom(pair.Key))
                         {
@@ -100,7 +99,6 @@ namespace Kuhpik
 
         private void HandleTick()
         {
-            _timeStep = new WaitForSeconds(1f / _updatesPerSecons);
             StartCoroutine(GameRoutine());
         }
 
@@ -108,13 +106,13 @@ namespace Kuhpik
         {
             while (true)
             {
-                yield return _timeStep;
+                yield return CoroutineHelper.GetDelay(1f / updatesPerSecons);
 
-                if (_fsm.State.IsInited)
+                if (fsm.State.IsInited)
                 {
-                    for (int i = 0; i < _fsm.State.RunningSystems.Length; i++)
+                    for (int i = 0; i < fsm.State.RunningSystems.Length; i++)
                     {
-                        _fsm.State.RunningSystems[i].OnRun();
+                        fsm.State.RunningSystems[i].OnRun();
                     }
                 }
             }

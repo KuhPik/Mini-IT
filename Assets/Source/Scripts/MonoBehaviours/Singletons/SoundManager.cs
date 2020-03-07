@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kuhpik;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -14,16 +15,16 @@ public class SoundManager : Singleton<SoundManager>
 
     private Dictionary<SoundType, AudioClip[]> _soundsCollection;
 
-    [SerializeField] private AudioSource _sfxSource;
-    [SerializeField] private AudioSource _backgroundSource;
-    [SerializeField] private SoundData[] _datas;
+    [SerializeField] private AudioSource sfxSource;
+    [SerializeField] private AudioSource backgroundSource;
+    [SerializeField] private SoundData[] datas;
 
     /// <summary>
     /// Playing the SFX of specified type.
     /// </summary>
     public void PlaySound(SoundType type)
     {
-        _sfxSource.PlayOneShot(GetClip(type));
+        sfxSource.PlayOneShot(GetClip(type));
     }
 
     /// <summary>
@@ -31,8 +32,8 @@ public class SoundManager : Singleton<SoundManager>
     /// </summary>
     public void ChangeMusic(SoundType type)
     {
-        _backgroundSource.clip = GetClip(type);
-        _backgroundSource.Play();
+        backgroundSource.clip = GetClip(type);
+        backgroundSource.Play();
     }
 
     /// <summary>
@@ -40,7 +41,7 @@ public class SoundManager : Singleton<SoundManager>
     /// </summary>
     public void ChangeVolume(float value)
     {
-        _sfxSource.outputAudioMixerGroup.audioMixer.SetFloat("Volume", value);
+        sfxSource.outputAudioMixerGroup.audioMixer.SetFloat("Volume", value);
     }
 
     /// <summary>
@@ -48,7 +49,7 @@ public class SoundManager : Singleton<SoundManager>
     /// </summary>
     public void ChangeVolume(float value, bool isSFX)
     {
-        var source = isSFX ? _sfxSource : _backgroundSource;
+        var source = isSFX ? sfxSource : backgroundSource;
         source.volume = value;
     }
 
@@ -61,7 +62,7 @@ public class SoundManager : Singleton<SoundManager>
 
     private void HandleCollection()
     {
-        _soundsCollection = _datas.ToDictionary(x => x.type, x => x.clips);
+        _soundsCollection = datas.ToDictionary(x => x.type, x => x.clips);
     }
 
     private AudioClip GetClip(SoundType type)
