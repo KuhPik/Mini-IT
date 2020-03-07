@@ -11,8 +11,8 @@ namespace Kuhpik
     public class GameRoot : MonoBehaviour
     {
         [Header("Settings")]
+        [SerializeField] [Range(10, 60)] private int updatesPerSecons = 60;
         [SerializeField] private GameConfig config;
-        [SerializeField] [Range(10, 60)] private int updatesPerSecons;
         [SerializeField] private bool isTapToStart;
         [SerializeField] private Button startButton;
 
@@ -46,17 +46,28 @@ namespace Kuhpik
 
         private void Start()
         {
-            Application.targetFrameRate = 60;
+            QualitySettings.vSyncCount = 0;
+            Application.targetFrameRate = updatesPerSecons;
 
             if (isTapToStart) startButton.onClick.AddListener(InitSystems);
             else InitSystems();
+        }
+
+        private void Update()
+        {
+            if (fsm.State.IsInited)
+            {
+                for (int i = 0; i < fsm.State.RunningSystems.Length; i++)
+                {
+                    fsm.State.RunningSystems[i].OnRun();
+                }
+            }
         }
 
         private void InitSystems()
         {
             HandleGameStates();
             HandleInjections();
-            HandleTick();
 
             fsm.State.Activate();
         }
@@ -92,27 +103,6 @@ namespace Kuhpik
                         {
                             field.SetValue(system, pair.Value);
                         }
-                    }
-                }
-            }
-        }
-
-        private void HandleTick()
-        {
-            StartCoroutine(GameRoutine());
-        }
-
-        private IEnumerator GameRoutine()
-        {
-            while (true)
-            {
-                yield return CoroutineHelper.GetDelay(1f / updatesPerSecons);
-
-                if (fsm.State.IsInited)
-                {
-                    for (int i = 0; i < fsm.State.RunningSystems.Length; i++)
-                    {
-                        fsm.State.RunningSystems[i].OnRun();
                     }
                 }
             }
